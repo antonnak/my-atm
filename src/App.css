@@ -24,6 +24,12 @@
   color: white;
 }
 
+.table {
+  border: 1px solid black;
+  padding: 25px;
+  background-color: lightblue;
+}
+
 .App-link {
   color: #61dafb;
 }

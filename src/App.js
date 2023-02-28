@@ -1,7 +1,8 @@
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import './App.css';
+import axios from 'axios';
 
-const ATMDeposit = ({ onChange, isDeposit, validTransaction, errorMessage}) => {
+const ATMDeposit = ({ onChange, isDeposit, validTransaction, errorMessage, data}) => {
   console.log(validTransaction);
   let isValid = !validTransaction;
   console.log(isValid);
@@ -15,6 +16,11 @@ const ATMDeposit = ({ onChange, isDeposit, validTransaction, errorMessage}) => {
       <input type="submit" width="200" value="Submit" id="submit-input" disabled={isValid}></input>
     </label>
       <span className='error-text'>{errorMessage}</span>
+      <div className='table'>
+        <ul>USD/GBP exchange rate is {data.usd.gbp}</ul>
+        <ul>USD/EUR exchange rate is {data.usd.eur}</ul>
+        <ul>USD/JPY exchange rate is {data.usd.jpy}</ul>
+      </div>
     </>
   );
 };
@@ -26,15 +32,29 @@ const Account = () => {
   const [atmMode, setAtmMode] = useState(""); 
   const [validTransaction, setValidTransaction] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [url, setUrl] = useState("https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1/latest/currencies/usd.json");
+  const [data, setData] = useState({ usd: {} });
 
   let status = `Account Balance $ ${totalState} `;
   console.log(`Account Rendered with isDeposit: ${isDeposit}`);
   
+  useEffect (()=>{
+      const fetchdata = async () => {
+        try {
+        let result = await axios(url);
+        setData(result.data);
+        console.log(result.data);
+      } catch (errors) {console.log(errors)}
+    };
+    fetchdata();
+  }, [url]);
+
   const handleChange = (event) => {
     console.log(event.target.value);
     console.log(totalState);
     if (Number(event.target.value)<=0) {
       setValidTransaction(false);
+      setErrorMessage('');
       return;
     } else if (atmMode === "Cash Back" && (Number(event.target.value) > totalState)) {
       console.log(atmMode);
@@ -44,6 +64,7 @@ const Account = () => {
       setValidTransaction(true)
       console.log(`handleChange ${event.target.value}`);
       setDeposit(Number(event.target.value));
+      setErrorMessage('');
     }
   };
 
@@ -74,7 +95,7 @@ const Account = () => {
       <option id="cashback-selection" value="Cash Back">Cash Back</option>
       </select>
       {
-      atmMode && <ATMDeposit onChange={handleChange} isDeposit={isDeposit} validTransaction={validTransaction} errorMessage={errorMessage}></ATMDeposit>
+      atmMode && <ATMDeposit onChange={handleChange} isDeposit={isDeposit} validTransaction={validTransaction} errorMessage={errorMessage} data={data}></ATMDeposit>
       }
     </form>
   );
